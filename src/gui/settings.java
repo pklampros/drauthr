@@ -1,13 +1,14 @@
 package gui;
 
-import java.awt.EventQueue;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JButton;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
+
+import base.DataHandler;
+
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -22,7 +23,7 @@ public class settings extends JFrame {
 	private JTextField pathField;
 
 
-	public settings(final MainWindow parent) {
+	public settings(final DataHandler dh) {
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 223, 316);
 		contentPane = new JPanel();
@@ -46,25 +47,25 @@ public class settings extends JFrame {
 		serverField.setBounds(10, 47, 188, 20);
 		contentPane.add(serverField);
 		serverField.setColumns(10);
-		serverField.setText(parent.dh.data[0]);
+		serverField.setText(dh.data[0]);
 
 		pathField = new JTextField();
 		pathField.setBounds(10, 94, 188, 20);
 		contentPane.add(pathField);
 		pathField.setColumns(10);
-		pathField.setText(parent.dh.data[1]);
+		pathField.setText(dh.data[1]);
 		
 		userField = new JTextField();
 		userField.setBounds(10, 141, 188, 20);
 		contentPane.add(userField);
 		userField.setColumns(10);
-		userField.setText(parent.dh.data[2]);
+		userField.setText(dh.data[2]);
 		
 		passField = new JTextField();
 		passField.setBounds(10, 189, 188, 20);
 		contentPane.add(passField);
 		passField.setColumns(10);
-		passField.setText(parent.dh.data[3]);
+		passField.setText(dh.data[3]);
 		
 		
 		JLabel lblRestPath = new JLabel("REST Path");
@@ -91,11 +92,11 @@ public class settings extends JFrame {
 		JButton btnNewButton = new JButton("Save");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				parent.dh.data[0] = serverField.getText();
-				parent.dh.data[1] = pathField.getText();
-				parent.dh.data[2] = userField.getText();
-				parent.dh.data[3] = passField.getText();
-				parent.dh.writeSettings();
+				dh.data[0] = serverField.getText();
+				dh.data[1] = pathField.getText();
+				dh.data[2] = userField.getText();
+				dh.data[3] = passField.getText();
+				dh.writeSettings();
 				dispose();
 			}
 		});

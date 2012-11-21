@@ -4,7 +4,7 @@ import java.io.*;
 
 public class DataHandler {
 	public String[] data = new String[4];
-	private boolean fileIsNew = false;
+	//private boolean fileIsNew = false;
 
 	private File checkSettings() {
 		File f = new File("settings.csv");
@@ -15,10 +15,10 @@ public class DataHandler {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			fileIsNew = true;
+			//fileIsNew = true;
 		} else {
 			
-			fileIsNew = false;
+			//fileIsNew = false;
 		}
 		return f;
 		// System.out.println(f.getPath());
@@ -58,7 +58,6 @@ public class DataHandler {
 			FileInputStream fstream = new FileInputStream(f);
 			DataInputStream in = new DataInputStream(fstream);
 			BufferedReader br = new BufferedReader(new InputStreamReader(in));
-			String strLine = null;
 			// Read File Line By Line
 			int i = 0;
 			while ((fileData[i] = br.readLine()) != null

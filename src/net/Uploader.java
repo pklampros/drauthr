@@ -18,57 +18,69 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
+import base.*;
 
-public class apache {
-	private static DefaultHttpClient httpclient;
-	private static String siteName,restPath,username,password;
-
-	public static void main(String[] args) throws Exception {
-		// for example: 
-		// generateURIelements("http://www.mySite.com/services/", "rest_path/");
-		// generateUSERelements("username","pass");
-		
+@SuppressWarnings("unchecked")
+public class Uploader {
+	private DefaultHttpClient httpclient;
+	private String [] siteData;
+//	private static String siteName,restPath,username,password;
+	public Uploader(final String [] data) {
+		generateURIelements(data[0], data[1]);
+		generateUSERelements(data[2],data[3]);
 		httpclient = new DefaultHttpClient();
-		
-		System.out.println("Starting");
+		params.println("Starting");
 		restLogin();
+		
 		//restNodeCreate();
 
 //		restNodeUpdate();
 //		restNodeUpdate2();
 		restNodeUpdate3();
 //		System.out.println(getJSONvalue(restGetNode(33),"field_img"));
-		System.out.println(getJSONvalue(restGetNode(33),"field_imgs"));
+		params.println(getJSONvalue(restGetNode(33),"field_imgs"));
 		//restFileUpload("C:/st/cap.png");
+	}
+	public void closeConnection() {
+		params.println("Finished");
 		httpclient.getConnectionManager().shutdown();
+	}
+	public static void main(String[] args) throws Exception {
+		// for example: 
 
-		System.out.println("Finished");
+		
+		
+		
+
+		
+
+
 	}
-	public static void generateURIelements(String sN, String rP) {
-		siteName = sN;
-		restPath = rP;
+	public void generateURIelements(String sN, String rP) {
+		siteData[0] = sN;
+		siteData[1] = rP;
 	}
-	public static void generateUSERelements(String user, String pass){
-		username = user;
-		password = pass;
+	public void generateUSERelements(String user, String pass){
+		siteData[2] = user;
+		siteData[3] = pass;
 	}
-	public static String compileURI(String restService) {
-		return siteName + restPath + restService;
+	public String compileURI(String restService) {
+		return siteData[0] + siteData[1] + restService;
 	}
 
-	private static void restLogin() {
+	private void restLogin() {
 		try {
 			HttpPost request = new HttpPost(compileURI("user/login"));
 			JSONObject j = new JSONObject();
-			j.put("username", username);
-			j.put("password", password);
+			j.put("username", siteData[2]);
+			j.put("password", siteData[3]);
 			StringEntity params = new StringEntity(j.toString());
 			request.addHeader("content-type", "application/json");
 			request.setEntity(params);
 			HttpResponse response = httpclient.execute(request);
 
-			System.out.println(response);
-			System.out.println("loller re");
+			base.params.println(response);
+			base.params.println("loller re");
 			request.releaseConnection();
 			// if(response != null) {
 		} catch (Exception ex) {
@@ -79,7 +91,7 @@ public class apache {
 		}
 	}
 
-	private static String restGetNode(int node) {
+	private String restGetNode(int node) {
 		String daString = "";
 		try {
 
@@ -109,7 +121,8 @@ public class apache {
 		return daString;
 	}
 
-	private static void restFileUpload(String theFile) {
+	public int fileUpload(String theFile) {
+		int fid = -1;
 		String image64 = ImageToBase64.toBase64(theFile);
 		try {
 			HttpPost request = new HttpPost(compileURI("file"));
@@ -129,7 +142,7 @@ public class apache {
 						new InputStreamReader(instream));
 				// do something useful with the response
 				String daString = reader.readLine();
-				System.out.println(daString);
+				base.params.println(daString);
 
 			} catch (IOException ex) {
 
@@ -142,23 +155,25 @@ public class apache {
 		} finally {
 
 		}
+		return fid;
 	}
 
 	
-	private static void restNodeCreate() {
+	private void restNodeCreate(String [] args) {
+		if(args.length<3) return;
 		try {
 
 			HttpPost request = new HttpPost(compileURI("node"));
 			JSONObject j = new JSONObject();
-			j.put("type", "story");
-			j.put("title", "testnode2");
-			j.put("body", "dude!!!!!");
+			j.put("type", args[0]);
+			j.put("title", args[1]);
+			j.put("body", args[2]);
 		
 			StringEntity params = new StringEntity(j.toString());
 			request.addHeader("content-type", "application/json");
 			request.setEntity(params);
 			HttpResponse response = httpclient.execute(request);
-			System.out.println(readResponse(response));
+			base.params.println(readResponse(response));
 			request.releaseConnection();
 		} catch (Exception ex) {
 			// handle exception here
@@ -166,7 +181,7 @@ public class apache {
 			// httpclient.getConnectionManager().shutdown();
 		}
 	}
-	private static void restNodeUpdate() {
+	private void restNodeUpdate() {
 		try {
 
 			HttpPut request = new HttpPut(compileURI("node/33"));
@@ -184,7 +199,7 @@ public class apache {
 			request.addHeader("content-type", "application/json");
 			request.setEntity(params);
 			HttpResponse response = httpclient.execute(request);
-			System.out.println(readResponse(response));
+			base.params.println(readResponse(response));
 			request.releaseConnection();
 		} catch (Exception ex) {
 			// handle exception here
@@ -192,7 +207,7 @@ public class apache {
 			// httpclient.getConnectionManager().shutdown();
 		}
 	}
-	private static void restNodeUpdate2() {
+	private void restNodeUpdate2() {
 		try {
 
 			HttpPut request = new HttpPut(compileURI("node/33"));
@@ -203,12 +218,12 @@ public class apache {
 			JSONArray jArrayDude = new JSONArray();
 			jArrayDude.add(mapthing);
 			j.put("field_text", jArrayDude);
-			System.out.println(j.toString());
+			base.params.println(j.toString());
 			StringEntity params = new StringEntity(j.toString());
 			request.addHeader("content-type", "application/json");
 			request.setEntity(params);
 			HttpResponse response = httpclient.execute(request);
-			System.out.println(readResponse(response));
+			base.params.println(readResponse(response));
 			request.releaseConnection();
 		} catch (Exception ex) {
 			// handle exception here
@@ -216,7 +231,7 @@ public class apache {
 			// httpclient.getConnectionManager().shutdown();
 		}
 	}
-	private static void restNodeUpdate3() {
+	private void restNodeUpdate3() {
 		try {
 
 			HttpPut request = new HttpPut(compileURI("node/33"));
@@ -235,7 +250,7 @@ public class apache {
 			request.addHeader("content-type", "application/json");
 			request.setEntity(params);
 			HttpResponse response = httpclient.execute(request);
-			System.out.println(readResponse(response));
+			base.params.println(readResponse(response));
 			request.releaseConnection();
 		} catch (Exception ex) {
 			// handle exception here
@@ -243,10 +258,7 @@ public class apache {
 			// httpclient.getConnectionManager().shutdown();
 		}
 	}
-	// private static String [] breakResponse(String response){
-	//
-	// }
-	public static String readResponse(HttpResponse response) {
+	public String readResponse(HttpResponse response) {
 		HttpEntity entity = response.getEntity();
 		String daString = "";
 		try {
@@ -265,7 +277,7 @@ public class apache {
 		}
 		return daString;
 	}
-	public static String getJSONvalue(String daString, String theKey) {
+	public String getJSONvalue(String daString, String theKey) {
 		String result = "";
 			JSONObject j3 = new JSONObject();
 			j3 = (JSONObject) JSONValue.parse(daString);

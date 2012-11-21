@@ -14,13 +14,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.Color;
 import java.awt.Font;
-import java.io.File;
-import java.io.IOException;
-
 import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
-
-import base.DataHandler;
+import net.Uploader;
+import base.*;
 
 @SuppressWarnings("serial")
 public class MainWindow extends JFrame {
@@ -98,6 +95,20 @@ public class MainWindow extends JFrame {
 		contentPane.add(titleArea);
 
 		JButton btnUpload = new JButton("Upload");
+		btnUpload.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Uploader up = new Uploader(dh.data);
+				if(listModel.size()>0) {
+					int [] fids = new int[listModel.size()];
+					for(int i = 0;i < listModel.size(); i++) {
+						fids[i] = up.fileUpload(listModel.get(i));
+					}
+//					up.generateImageNode();
+				} else {
+//					up.generateSimpleNode();
+				}
+			}
+		});
 		btnUpload.setForeground(Color.BLACK);
 		btnUpload.setBackground(Color.LIGHT_GRAY);
 		btnUpload.setBounds(459, 319, 89, 23);
@@ -127,7 +138,7 @@ public class MainWindow extends JFrame {
 		btnRemove.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// System.out.println("loller re " + titleArea.getText());
-				System.out.println("loller re " + filename);
+				params.println("loller re " + filename);
 			}
 		});
 		btnRemove.setBounds(459, 290, 89, 23);
@@ -139,7 +150,7 @@ public class MainWindow extends JFrame {
 				EventQueue.invokeLater(new Runnable() {
 					public void run() {
 						try {
-							settings frame = new settings(self);
+							settings frame = new settings(dh);
 							frame.setVisible(true);
 						} catch (Exception e) {
 							e.printStackTrace();
