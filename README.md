@@ -8,8 +8,8 @@ Drupal Author
 Offline authoring tool for websites using Drupal
 
 site:
-* Drupal
-* Services module
+* [Drupal](http://drupal.org/)
+* [Services module](http://drupal.org/project/services)
 
 client:
 * [JSON-Simple](http://code.google.com/p/json-simple/)
