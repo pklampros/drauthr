@@ -15,4 +15,3 @@ client:
 * [JSON-Simple](http://code.google.com/p/json-simple/)
 * [Appache httpClient](http://hc.apache.org/httpclient-3.x/)
 
-

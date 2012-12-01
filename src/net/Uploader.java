@@ -1,6 +1,5 @@
 package net;
 
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,52 +22,88 @@ import base.*;
 @SuppressWarnings("unchecked")
 public class Uploader {
 	private DefaultHttpClient httpclient;
-	private String [] siteData;
-//	private static String siteName,restPath,username,password;
-	public Uploader(final String [] data) {
-		generateURIelements(data[0], data[1]);
-		generateUSERelements(data[2],data[3]);
-		httpclient = new DefaultHttpClient();
-		params.println("Starting");
-		restLogin();
-		
-		//restNodeCreate();
+	private String[] siteData;
 
-//		restNodeUpdate();
-//		restNodeUpdate2();
-		restNodeUpdate3();
-//		System.out.println(getJSONvalue(restGetNode(33),"field_img"));
-		params.println(getJSONvalue(restGetNode(33),"field_imgs"));
-		//restFileUpload("C:/st/cap.png");
+	// private static String siteName,restPath,username,password;
+	public Uploader(final String[] data) {
+		siteData = new String[data.length];
+		generateURIelements(data[0], data[1]);
+		generateUSERelements(data[2], data[3]);
+		// httpclient = new DefaultHttpClient();
+		params.println("Starting");
+		startAndLogin();
+
+		// restNodeCreate();
+
+		// restNodeUpdate();
+		// restNodeUpdate2();
+		// restNodeUpdate3();
+		// System.out.println(getJSONvalue(restGetNode(33),"field_img"));
+		params.println(getJSONvalue(getNode(33), "field_imgs"));
 	}
+
 	public void closeConnection() {
 		params.println("Finished");
 		httpclient.getConnectionManager().shutdown();
 	}
-	public static void main(String[] args) throws Exception {
-		// for example: 
 
-		
-		
-		
-
-		
-
-
+	public void uploadNode(String[] args,String [] fids) {
+		startAndLogin();
+		nodeCreate(generateJSON(args,fids));
+		closeConnection();
 	}
+
+	private JSONObject generateJSON(String[] args,String [] fids) {
+		JSONObject j = new JSONObject();
+		j.put("type", args[0]);
+		j.put("title", args[1]);
+		j.put("body", args[2]);
+		if (args.length > 3) {
+			for (int i = 0; i < fids.length; i++) {
+				j.put("field_img", generateJSONArray(fids[i]));
+			}
+		}
+		return j;
+	}
+
+	private JSONArray generateJSONArray(String fid) {
+		Map<String, String> mapthing = new HashMap<String, String>();
+		mapthing.put("fid", "15");
+		JSONArray jArrayDude = new JSONArray();
+		jArrayDude.add(mapthing);
+		return jArrayDude;
+	}
+
+	// public static void main(String[] args) throws Exception {
+	// // for example:
+	//
+	//
+	//
+	//
+	//
+	//
+	//
+	//
+	// }
 	public void generateURIelements(String sN, String rP) {
+		// do error correction
+
 		siteData[0] = sN;
 		siteData[1] = rP;
 	}
-	public void generateUSERelements(String user, String pass){
+
+	public void generateUSERelements(String user, String pass) {
+		// do error correction
 		siteData[2] = user;
 		siteData[3] = pass;
 	}
+
 	public String compileURI(String restService) {
 		return siteData[0] + siteData[1] + restService;
 	}
 
-	private void restLogin() {
+	private void startAndLogin() {
+		httpclient = new DefaultHttpClient();
 		try {
 			HttpPost request = new HttpPost(compileURI("user/login"));
 			JSONObject j = new JSONObject();
@@ -91,7 +126,7 @@ public class Uploader {
 		}
 	}
 
-	private String restGetNode(int node) {
+	private String getNode(int node) {
 		String daString = "";
 		try {
 
@@ -105,7 +140,7 @@ public class Uploader {
 						new InputStreamReader(instream));
 				// do something useful with the response
 				daString = reader.readLine();
-//				System.out.println("node 27 " + daString);
+				// System.out.println("node 27 " + daString);
 			} catch (IOException ex) {
 
 				// In case of an IOException the connection will be released
@@ -121,14 +156,14 @@ public class Uploader {
 		return daString;
 	}
 
-	public int fileUpload(String theFile) {
-		int fid = -1;
+	public String fileUpload(String theFile) {
+		String fid = "-1";
 		String image64 = ImageToBase64.toBase64(theFile);
 		try {
 			HttpPost request = new HttpPost(compileURI("file"));
 			JSONObject j = new JSONObject();
 			j.put("file", "" + image64);
-			j.put("filepath", "sites/default/files/imglol.png");
+			j.put("filepath", "sites/default/files/img.png");
 			StringEntity params = new StringEntity(j.toString());
 			request.addHeader("content-type", "application/json");
 			request.setEntity(params);
@@ -158,17 +193,12 @@ public class Uploader {
 		return fid;
 	}
 
-	
-	private void restNodeCreate(String [] args) {
-		if(args.length<3) return;
+	private void nodeCreate(JSONObject j) {
+		// if(args.length<3) return;
 		try {
 
 			HttpPost request = new HttpPost(compileURI("node"));
-			JSONObject j = new JSONObject();
-			j.put("type", args[0]);
-			j.put("title", args[1]);
-			j.put("body", args[2]);
-		
+
 			StringEntity params = new StringEntity(j.toString());
 			request.addHeader("content-type", "application/json");
 			request.setEntity(params);
@@ -181,15 +211,16 @@ public class Uploader {
 			// httpclient.getConnectionManager().shutdown();
 		}
 	}
+
 	private void restNodeUpdate() {
 		try {
 
 			HttpPut request = new HttpPut(compileURI("node/33"));
 			JSONObject j = new JSONObject();
 			j.put("type", "story");
-			// note to self: it appears that all its fields 
+			// note to self: it appears that all its fields
 			// are updated no matter what...
-			Map<String,String> mapthing = new HashMap<String,String>();
+			Map<String, String> mapthing = new HashMap<String, String>();
 			mapthing.put("fid", "15");
 			JSONArray jArrayDude = new JSONArray();
 			jArrayDude.add(mapthing);
@@ -207,14 +238,15 @@ public class Uploader {
 			// httpclient.getConnectionManager().shutdown();
 		}
 	}
+
 	private void restNodeUpdate2() {
 		try {
 
 			HttpPut request = new HttpPut(compileURI("node/33"));
 			JSONObject j = new JSONObject();
 			j.put("type", "story");
-			Map<String,String> mapthing = new HashMap<String,String>();
-			mapthing.put("value","dudeerrererer");
+			Map<String, String> mapthing = new HashMap<String, String>();
+			mapthing.put("value", "dudeerrererer");
 			JSONArray jArrayDude = new JSONArray();
 			jArrayDude.add(mapthing);
 			j.put("field_text", jArrayDude);
@@ -231,15 +263,16 @@ public class Uploader {
 			// httpclient.getConnectionManager().shutdown();
 		}
 	}
+
 	private void restNodeUpdate3() {
 		try {
 
 			HttpPut request = new HttpPut(compileURI("node/33"));
 			JSONObject j = new JSONObject();
 			j.put("type", "story");
-			// note to self: it appears that all its fields 
+			// note to self: it appears that all its fields
 			// are updated no matter what...
-			Map<String,String> mapthing = new HashMap<String,String>();
+			Map<String, String> mapthing = new HashMap<String, String>();
 			mapthing.put("fid", "22");
 			JSONArray jArrayDude = new JSONArray();
 			jArrayDude.add(mapthing);
@@ -258,30 +291,33 @@ public class Uploader {
 			// httpclient.getConnectionManager().shutdown();
 		}
 	}
+
 	public String readResponse(HttpResponse response) {
 		HttpEntity entity = response.getEntity();
 		String daString = "";
 		try {
 			InputStream instream = entity.getContent();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(instream));
+			BufferedReader reader = new BufferedReader(new InputStreamReader(
+					instream));
 			// do something useful with the response
 			daString = reader.readLine();
 
-			//System.out.println("j3 test: " + getJSONvalue(daString,"nid"));
+			// System.out.println("j3 test: " + getJSONvalue(daString,"nid"));
 
 		} catch (IOException ex) {
 
 			// In case of an IOException the connection will be released
 			// back to the connection manager automatically
-			//throw ex;
+			// throw ex;
 		}
 		return daString;
 	}
+
 	public String getJSONvalue(String daString, String theKey) {
 		String result = "";
-			JSONObject j3 = new JSONObject();
-			j3 = (JSONObject) JSONValue.parse(daString);
-			result = j3.get(theKey).toString();
+		JSONObject j3 = new JSONObject();
+		j3 = (JSONObject) JSONValue.parse(daString);
+		result = j3.get(theKey).toString();
 		return result;
 	}
 }

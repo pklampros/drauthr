@@ -68,11 +68,11 @@ public class MainWindow extends JFrame {
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 
-		JTextArea textArea = new JTextArea();
-		textArea.setLineWrap(true);
-		textArea.setBorder(new LineBorder(Color.WHITE, 3));
-		textArea.setBounds(130, 84, 216, 246);
-		contentPane.add(textArea);
+		final JTextArea descrArea = new JTextArea();
+		descrArea.setLineWrap(true);
+		descrArea.setBorder(new LineBorder(Color.WHITE, 3));
+		descrArea.setBounds(130, 84, 216, 246);
+		contentPane.add(descrArea);
 
 		JLabel lblTitle = new JLabel("Title");
 		lblTitle.setFont(new Font("Century Gothic", Font.PLAIN, 16));
@@ -97,15 +97,17 @@ public class MainWindow extends JFrame {
 		JButton btnUpload = new JButton("Upload");
 		btnUpload.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+//				if(formValid) pop form not valid error
 				Uploader up = new Uploader(dh.data);
 				if(listModel.size()>0) {
-					int [] fids = new int[listModel.size()];
+					String [] fids = new String[listModel.size()];
 					for(int i = 0;i < listModel.size(); i++) {
 						fids[i] = up.fileUpload(listModel.get(i));
 					}
+					up.uploadNode(new String [] {"story",titleArea.getText(),descrArea.getText()},fids);
 //					up.generateImageNode();
 				} else {
-//					up.generateSimpleNode();
+					up.uploadNode(new String [] {"story",titleArea.getText(),descrArea.getText()},null);
 				}
 			}
 		});
