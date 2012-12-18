@@ -46,73 +46,69 @@ public class Uploader {
 		// params.println(getJSONvalue(getNode(33), "field_imgs"));
 		// params.println(getNode(38));
 		// params.println(getNodesIndex());
-		// params.println(getJSONArray(getNodesIndex())[1]);
-//		 params.println(fileUpload("C:/ATI/a.jpg"));
+		// params.println(getJSONArray(getNodeIndex())[1]);
+		// params.println(fileUpload("C:/ATI/a.jpg"));
+//		getNodeTypes();
+		getVocabularyTerms(1);
 
 	}
+	
+	// ---- HARD CODE
+	
+	private JSONObject generateJSON(String[] args, String[] fids) {
+		JSONObject j = new JSONObject();
+		j.put("type", args[0]);
+		j.put("title", args[1]);
+		j.put("body", args[2]);
+		if (args.length > 3) {
+			for (int i = 0; i < fids.length; i++) {
+				j.put("field_img", generateJSONArray(fids[i]));
+			}
+		}
+		return j;
+	}
 
+	private JSONArray generateJSONArray(String fid) {
+		Map<String, String> mapthing = new HashMap<String, String>();
+		mapthing.put("fid", "15");
+		JSONArray jArrayDude = new JSONArray();
+		jArrayDude.add(mapthing);
+		return jArrayDude;
+	}
+	
+	// ---- HARD CODE 
+	
+	
+	public String [] getNodeTypes() {
+		System.out.println(goPost("drauthr/get_content_types",null,true));
+		return new String [] {"",""};
+	}
+	public String [] getVocabularyTerms(int vid) {
+		JSONObject j = new JSONObject();
+		j.put("vid", vid);
+		System.out.println(goPost("taxonomy_vocabulary/getTree",j,true));
+		return new String [] {"",""};
+	}
 	public void uploadNode(String[] args, String[] fids) {
 		startAndLogin();
-		nodeCreate(generateJSON(args, fids));
+		goPost("node", generateJSON(args, fids), false);
 		closeConnection();
 	}
 
 	private void startAndLogin() {
 		httpclient = new DefaultHttpClient();
-		try {
-			HttpPost request = new HttpPost(compileURI("user/login"));
-			JSONObject j = new JSONObject();
-			j.put("username", siteData[2]);
-			j.put("password", siteData[3]);
-			StringEntity params = new StringEntity(j.toString());
-			request.addHeader("content-type", "application/json");
-			request.setEntity(params);
-			HttpResponse response = httpclient.execute(request);
 
-			base.params.println(response);
-			base.params.println("loller re");
-			request.releaseConnection();
-			// if(response != null) {
-		} catch (Exception ex) {
-			// handle exception here
-		}
+		JSONObject j = new JSONObject();
+		j.put("username", siteData[2]);
+		j.put("password", siteData[3]);
+		goPost("user/login", j, false);
 	}
 
 	private String getNode(int node) {
 		return goGet("node/" + node);
 	}
 
-	private String goPost(String resource, JSONObject j, boolean respond) {
-		// HttpPost request = new HttpPost(compileURI(resource));
-		// if(args.length<3) return;
-		String daResponse = "";
-		try {
-
-			HttpPost request = new HttpPost(compileURI(resource));
-
-			StringEntity params = new StringEntity(j.toString());
-			request.addHeader("content-type", "application/json");
-			request.setEntity(params);
-			if (respond) {
-				HttpResponse response = httpclient.execute(request);
-				daResponse = readResponse(response);
-			} else {
-				httpclient.execute(request);
-			}
-			request.releaseConnection();
-		} catch (Exception ex) {
-			// handle exception here
-		} finally {
-			// httpclient.getConnectionManager().shutdown();
-		}
-		return daResponse;
-	}
-
-	private String goGet() {
-		return "";
-	}
-
-	private String getNodesIndex() {
+	private String getNodeIndex() {
 		// return goGet("node?fields=nid");
 		// return goGet("node?page=1");
 		return goGet("node?fields=nid&pagesize=50");
@@ -127,108 +123,51 @@ public class Uploader {
 		j.put("filepath", "sites/default/files/img.png");
 		String temp = goPost("file", j, true);
 		System.out.println(temp);
-		fid = getJSONObject(temp, "fid");
-		
+		fid = getJSONValue(temp, "fid");
+
 		return fid;
 	}
 
-	private void nodeCreate(JSONObject j) {
-		// if(args.length<3) return;
-		try {
-
-			HttpPost request = new HttpPost(compileURI("node"));
-
-			StringEntity params = new StringEntity(j.toString());
-			request.addHeader("content-type", "application/json");
-			request.setEntity(params);
-			HttpResponse response = httpclient.execute(request);
-			base.params.println(readResponse(response));
-			request.releaseConnection();
-		} catch (Exception ex) {
-			// handle exception here
-		} finally {
-			// httpclient.getConnectionManager().shutdown();
-		}
-	}
-
 	private void restNodeUpdate() {
-		try {
 
-			HttpPut request = new HttpPut(compileURI("node/33"));
-			JSONObject j = new JSONObject();
-			j.put("type", "story");
-			// note to self: it appears that all its fields
-			// are updated no matter what...
-			Map<String, String> mapthing = new HashMap<String, String>();
-			mapthing.put("fid", "15");
-			JSONArray jArrayDude = new JSONArray();
-			jArrayDude.add(mapthing);
-			j.put("field_img", jArrayDude);
-
-			StringEntity params = new StringEntity(j.toString());
-			request.addHeader("content-type", "application/json");
-			request.setEntity(params);
-			HttpResponse response = httpclient.execute(request);
-			base.params.println(readResponse(response));
-			request.releaseConnection();
-		} catch (Exception ex) {
-			// handle exception here
-		} finally {
-			// httpclient.getConnectionManager().shutdown();
-		}
+		JSONObject j = new JSONObject();
+		j.put("type", "story");
+		// note to self: it appears that all its fields
+		// are updated no matter what...
+		Map<String, String> mapthing = new HashMap<String, String>();
+		mapthing.put("fid", "15");
+		JSONArray jArrayDude = new JSONArray();
+		jArrayDude.add(mapthing);
+		j.put("field_img", jArrayDude);
+		goPut("node/33", j, false);
 	}
 
 	private void restNodeUpdate2() {
-		try {
 
-			HttpPut request = new HttpPut(compileURI("node/33"));
-			JSONObject j = new JSONObject();
-			j.put("type", "story");
-			Map<String, String> mapthing = new HashMap<String, String>();
-			mapthing.put("value", "dudeerrererer");
-			JSONArray jArrayDude = new JSONArray();
-			jArrayDude.add(mapthing);
-			j.put("field_text", jArrayDude);
-			base.params.println(j.toString());
-			StringEntity params = new StringEntity(j.toString());
-			request.addHeader("content-type", "application/json");
-			request.setEntity(params);
-			HttpResponse response = httpclient.execute(request);
-			base.params.println(readResponse(response));
-			request.releaseConnection();
-		} catch (Exception ex) {
-			// handle exception here
-		} finally {
-			// httpclient.getConnectionManager().shutdown();
-		}
+		JSONObject j = new JSONObject();
+		j.put("type", "story");
+		Map<String, String> mapthing = new HashMap<String, String>();
+		mapthing.put("value", "dudeerrererer");
+		JSONArray jArrayDude = new JSONArray();
+		jArrayDude.add(mapthing);
+		j.put("field_text", jArrayDude);
+		goPut("node/33", j, false);
 	}
 
 	private void restNodeUpdate3() {
-		try {
+		JSONObject j = new JSONObject();
+		j.put("type", "story");
+		// note to self: it appears that all its fields
+		// are updated no matter what...
+		Map<String, String> mapthing = new HashMap<String, String>();
+		mapthing.put("fid", "22");
+		JSONArray jArrayDude = new JSONArray();
+		jArrayDude.add(mapthing);
+		jArrayDude.add(mapthing);
+		j.put("field_imgs", jArrayDude);
 
-			HttpPut request = new HttpPut(compileURI("node/33"));
-			JSONObject j = new JSONObject();
-			j.put("type", "story");
-			// note to self: it appears that all its fields
-			// are updated no matter what...
-			Map<String, String> mapthing = new HashMap<String, String>();
-			mapthing.put("fid", "22");
-			JSONArray jArrayDude = new JSONArray();
-			jArrayDude.add(mapthing);
-			jArrayDude.add(mapthing);
-			j.put("field_imgs", jArrayDude);
+		goPut("node/33", j, false);
 
-			StringEntity params = new StringEntity(j.toString());
-			request.addHeader("content-type", "application/json");
-			request.setEntity(params);
-			HttpResponse response = httpclient.execute(request);
-			base.params.println(readResponse(response));
-			request.releaseConnection();
-		} catch (Exception ex) {
-			// handle exception here
-		} finally {
-			// httpclient.getConnectionManager().shutdown();
-		}
 	}
 
 	public String readResponse(HttpResponse response) {
@@ -250,7 +189,7 @@ public class Uploader {
 		return daString;
 	}
 
-	public String getJSONObject(String daString, String theKey) {
+	public String getJSONValue(String daString, String theKey) {
 		String result = "";
 		JSONObject j3 = new JSONObject();
 		j3 = (JSONObject) JSONValue.parse(daString);
@@ -259,18 +198,13 @@ public class Uploader {
 	}
 
 	public String[] getJSONArray(String daString) {
-		// boolean isArray = false;
-		// if(daString.startsWith("[")) isArray = true;
-
 		String[] result;
-		// if(isArray) {
 		JSONArray j3 = new JSONArray();
 		j3 = (JSONArray) JSONValue.parse(daString);
 		result = new String[j3.size()];
 		for (int i = 0; i < result.length; i++) {
 			result[i] = j3.get(i).toString();
 		}
-		// }
 		return result;
 	}
 
@@ -279,26 +213,7 @@ public class Uploader {
 		httpclient.getConnectionManager().shutdown();
 	}
 
-	private JSONObject generateJSON(String[] args, String[] fids) {
-		JSONObject j = new JSONObject();
-		j.put("type", args[0]);
-		j.put("title", args[1]);
-		j.put("body", args[2]);
-		if (args.length > 3) {
-			for (int i = 0; i < fids.length; i++) {
-				j.put("field_img", generateJSONArray(fids[i]));
-			}
-		}
-		return j;
-	}
 
-	private JSONArray generateJSONArray(String fid) {
-		Map<String, String> mapthing = new HashMap<String, String>();
-		mapthing.put("fid", "15");
-		JSONArray jArrayDude = new JSONArray();
-		jArrayDude.add(mapthing);
-		return jArrayDude;
-	}
 
 	public void generateURIelements(String sN, String rP) {
 		// do error correction
@@ -330,4 +245,57 @@ public class Uploader {
 		}
 		return daResponse;
 	}
+
+	private String goPost(String resource, JSONObject j, boolean respond) {
+		// HttpPost request = new HttpPost(compileURI(resource));
+		// if(args.length<3) return;
+		String daResponse = "";
+		try {
+
+			HttpPost request = new HttpPost(compileURI(resource));
+			if (j != null) {
+				StringEntity params = new StringEntity(j.toString());
+				request.addHeader("content-type", "application/json");
+				request.setEntity(params);
+			}
+			if (respond) {
+				HttpResponse response = httpclient.execute(request);
+				System.out.println(response);
+				daResponse = readResponse(response);
+			} else {
+				httpclient.execute(request);
+			}
+			request.releaseConnection();
+		} catch (Exception ex) {
+			// handle exception here
+		} finally {
+			// httpclient.getConnectionManager().shutdown();
+		}
+		return daResponse;
+	}
+
+	private String goPut(String resource, JSONObject j, boolean respond) {
+		String daResponse = "";
+		try {
+
+			HttpPost request = new HttpPost(compileURI(resource));
+
+			StringEntity params = new StringEntity(j.toString());
+			request.addHeader("content-type", "application/json");
+			request.setEntity(params);
+			if (respond) {
+				HttpResponse response = httpclient.execute(request);
+				daResponse = readResponse(response);
+			} else {
+				httpclient.execute(request);
+			}
+			request.releaseConnection();
+		} catch (Exception ex) {
+			// handle exception here
+		} finally {
+			// httpclient.getConnectionManager().shutdown();
+		}
+		return daResponse;
+	}
+
 }

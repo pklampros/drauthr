@@ -167,18 +167,18 @@ public class MainWindow extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				// if(formValid) pop form not valid error
 				Uploader up = new Uploader(dh.data);
-				if (listModel.size() > 0) {
-					String[] fids = new String[listModel.size()];
-					for (int i = 0; i < listModel.size(); i++) {
-						fids[i] = up.fileUpload(listModel.get(i));
-					}
-					up.uploadNode(new String[] { "story", titleArea.getText(),
-							descrArea.getText() }, fids);
-					// up.generateImageNode();
-				} else {
-					up.uploadNode(new String[] { "story", titleArea.getText(),
-							descrArea.getText() }, null);
-				}
+//				if (listModel.size() > 0) {
+//					String[] fids = new String[listModel.size()];
+//					for (int i = 0; i < listModel.size(); i++) {
+//						fids[i] = up.fileUpload(listModel.get(i));
+//					}
+//					up.uploadNode(new String[] { "story", titleArea.getText(),
+//							descrArea.getText() }, fids);
+//					// up.generateImageNode();
+//				} else {
+//					up.uploadNode(new String[] { "story", titleArea.getText(),
+//							descrArea.getText() }, null);
+//				}
 			}
 		});
 		btnUpload.setForeground(Color.BLACK);
