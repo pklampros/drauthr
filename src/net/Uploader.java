@@ -25,6 +25,10 @@ public class Uploader {
 	private String[] siteData;
 
 	// private static String siteName,restPath,username,password;
+
+	// public static void main(String[] args) throws Exception {
+	// }
+
 	public Uploader(final String[] data) {
 		siteData = new String[data.length];
 		generateURIelements(data[0], data[1]);
@@ -39,67 +43,18 @@ public class Uploader {
 		// restNodeUpdate2();
 		// restNodeUpdate3();
 		// System.out.println(getJSONvalue(restGetNode(33),"field_img"));
-		params.println(getJSONvalue(getNode(33), "field_imgs"));
+		// params.println(getJSONvalue(getNode(33), "field_imgs"));
+		// params.println(getNode(38));
+		// params.println(getNodesIndex());
+		// params.println(getJSONArray(getNodesIndex())[1]);
+//		 params.println(fileUpload("C:/ATI/a.jpg"));
+
 	}
 
-	public void closeConnection() {
-		params.println("Finished");
-		httpclient.getConnectionManager().shutdown();
-	}
-
-	public void uploadNode(String[] args,String [] fids) {
+	public void uploadNode(String[] args, String[] fids) {
 		startAndLogin();
-		nodeCreate(generateJSON(args,fids));
+		nodeCreate(generateJSON(args, fids));
 		closeConnection();
-	}
-
-	private JSONObject generateJSON(String[] args,String [] fids) {
-		JSONObject j = new JSONObject();
-		j.put("type", args[0]);
-		j.put("title", args[1]);
-		j.put("body", args[2]);
-		if (args.length > 3) {
-			for (int i = 0; i < fids.length; i++) {
-				j.put("field_img", generateJSONArray(fids[i]));
-			}
-		}
-		return j;
-	}
-
-	private JSONArray generateJSONArray(String fid) {
-		Map<String, String> mapthing = new HashMap<String, String>();
-		mapthing.put("fid", "15");
-		JSONArray jArrayDude = new JSONArray();
-		jArrayDude.add(mapthing);
-		return jArrayDude;
-	}
-
-	// public static void main(String[] args) throws Exception {
-	// // for example:
-	//
-	//
-	//
-	//
-	//
-	//
-	//
-	//
-	// }
-	public void generateURIelements(String sN, String rP) {
-		// do error correction
-
-		siteData[0] = sN;
-		siteData[1] = rP;
-	}
-
-	public void generateUSERelements(String user, String pass) {
-		// do error correction
-		siteData[2] = user;
-		siteData[3] = pass;
-	}
-
-	public String compileURI(String restService) {
-		return siteData[0] + siteData[1] + restService;
 	}
 
 	private void startAndLogin() {
@@ -120,32 +75,29 @@ public class Uploader {
 			// if(response != null) {
 		} catch (Exception ex) {
 			// handle exception here
-		} finally {
-
-			// httpclient.getConnectionManager().shutdown();
 		}
 	}
 
 	private String getNode(int node) {
-		String daString = "";
+		return goGet("node/" + node);
+	}
+
+	private String goPost(String resource, JSONObject j, boolean respond) {
+		// HttpPost request = new HttpPost(compileURI(resource));
+		// if(args.length<3) return;
+		String daResponse = "";
 		try {
 
-			HttpGet request = new HttpGet(compileURI("node/" + node));
-			HttpResponse response = httpclient.execute(request);
-			HttpEntity entity = response.getEntity();
-			InputStream instream = entity.getContent();
-			try {
+			HttpPost request = new HttpPost(compileURI(resource));
 
-				BufferedReader reader = new BufferedReader(
-						new InputStreamReader(instream));
-				// do something useful with the response
-				daString = reader.readLine();
-				// System.out.println("node 27 " + daString);
-			} catch (IOException ex) {
-
-				// In case of an IOException the connection will be released
-				// back to the connection manager automatically
-				throw ex;
+			StringEntity params = new StringEntity(j.toString());
+			request.addHeader("content-type", "application/json");
+			request.setEntity(params);
+			if (respond) {
+				HttpResponse response = httpclient.execute(request);
+				daResponse = readResponse(response);
+			} else {
+				httpclient.execute(request);
 			}
 			request.releaseConnection();
 		} catch (Exception ex) {
@@ -153,43 +105,30 @@ public class Uploader {
 		} finally {
 			// httpclient.getConnectionManager().shutdown();
 		}
-		return daString;
+		return daResponse;
+	}
+
+	private String goGet() {
+		return "";
+	}
+
+	private String getNodesIndex() {
+		// return goGet("node?fields=nid");
+		// return goGet("node?page=1");
+		return goGet("node?fields=nid&pagesize=50");
 	}
 
 	public String fileUpload(String theFile) {
 		String fid = "-1";
 		String image64 = ImageToBase64.toBase64(theFile);
-		try {
-			HttpPost request = new HttpPost(compileURI("file"));
-			JSONObject j = new JSONObject();
-			j.put("file", "" + image64);
-			j.put("filepath", "sites/default/files/img.png");
-			StringEntity params = new StringEntity(j.toString());
-			request.addHeader("content-type", "application/json");
-			request.setEntity(params);
-			HttpResponse response = httpclient.execute(request);
-			HttpEntity entity = response.getEntity();
 
-			InputStream instream = entity.getContent();
-			try {
-
-				BufferedReader reader = new BufferedReader(
-						new InputStreamReader(instream));
-				// do something useful with the response
-				String daString = reader.readLine();
-				base.params.println(daString);
-
-			} catch (IOException ex) {
-
-				// In case of an IOException the connection will be released
-				// back to the connection manager automatically
-				throw ex;
-			}
-		} catch (Exception ex) {
-			// handle exception here
-		} finally {
-
-		}
+		JSONObject j = new JSONObject();
+		j.put("file", "" + image64);
+		j.put("filepath", "sites/default/files/img.png");
+		String temp = goPost("file", j, true);
+		System.out.println(temp);
+		fid = getJSONObject(temp, "fid");
+		
 		return fid;
 	}
 
@@ -299,13 +238,11 @@ public class Uploader {
 			InputStream instream = entity.getContent();
 			BufferedReader reader = new BufferedReader(new InputStreamReader(
 					instream));
-			// do something useful with the response
 			daString = reader.readLine();
 
 			// System.out.println("j3 test: " + getJSONvalue(daString,"nid"));
 
 		} catch (IOException ex) {
-
 			// In case of an IOException the connection will be released
 			// back to the connection manager automatically
 			// throw ex;
@@ -313,11 +250,84 @@ public class Uploader {
 		return daString;
 	}
 
-	public String getJSONvalue(String daString, String theKey) {
+	public String getJSONObject(String daString, String theKey) {
 		String result = "";
 		JSONObject j3 = new JSONObject();
 		j3 = (JSONObject) JSONValue.parse(daString);
 		result = j3.get(theKey).toString();
 		return result;
+	}
+
+	public String[] getJSONArray(String daString) {
+		// boolean isArray = false;
+		// if(daString.startsWith("[")) isArray = true;
+
+		String[] result;
+		// if(isArray) {
+		JSONArray j3 = new JSONArray();
+		j3 = (JSONArray) JSONValue.parse(daString);
+		result = new String[j3.size()];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = j3.get(i).toString();
+		}
+		// }
+		return result;
+	}
+
+	public void closeConnection() {
+		params.println("Finished");
+		httpclient.getConnectionManager().shutdown();
+	}
+
+	private JSONObject generateJSON(String[] args, String[] fids) {
+		JSONObject j = new JSONObject();
+		j.put("type", args[0]);
+		j.put("title", args[1]);
+		j.put("body", args[2]);
+		if (args.length > 3) {
+			for (int i = 0; i < fids.length; i++) {
+				j.put("field_img", generateJSONArray(fids[i]));
+			}
+		}
+		return j;
+	}
+
+	private JSONArray generateJSONArray(String fid) {
+		Map<String, String> mapthing = new HashMap<String, String>();
+		mapthing.put("fid", "15");
+		JSONArray jArrayDude = new JSONArray();
+		jArrayDude.add(mapthing);
+		return jArrayDude;
+	}
+
+	public void generateURIelements(String sN, String rP) {
+		// do error correction
+		siteData[0] = sN;
+		siteData[1] = rP;
+	}
+
+	public void generateUSERelements(String user, String pass) {
+		// do error correction
+		siteData[2] = user;
+		siteData[3] = pass;
+	}
+
+	public String compileURI(String restService) {
+		return siteData[0] + siteData[1] + restService;
+	}
+
+	private String goGet(String resource) {
+		String daResponse = "";
+		try {
+			HttpGet request = new HttpGet(compileURI(resource));
+			HttpResponse response = httpclient.execute(request);
+			daResponse = readResponse(response);
+			request.releaseConnection();
+		} catch (Exception ex) {
+			// handle exception here
+		} finally {
+			// httpclient.getConnectionManager().shutdown();
+		}
+		return daResponse;
 	}
 }

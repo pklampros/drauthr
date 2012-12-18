@@ -26,11 +26,16 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.RenderingHints;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -97,7 +102,6 @@ public class MainWindow extends JFrame {
 		imageDisplay.setBackground(Color.BLACK);
 		imageDisplay.setBorder(null);
 		// imageDisplay.setPreferredSize(new Dimension(5000, 5000));
-		// imageDisplay.setBounds(379, 184, 98, 41);
 		imageDisplay.setDropTarget(new DropTarget() {
 			@Override
 			public synchronized void drop(DropTargetDropEvent dtde) {
@@ -123,6 +127,8 @@ public class MainWindow extends JFrame {
 
 			}
 		});
+
+		// imageDisplay.setBounds(356, 50, 327, 232);
 		// contentPane.add(imageDisplay);
 
 		scroller = new JScrollPane(imageDisplay);
@@ -204,7 +210,7 @@ public class MainWindow extends JFrame {
 		btnRemove.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// System.out.println("loller re " + titleArea.getText());
-				params.println("loller re " + filename);
+				imageDisplay.removeSelected();
 			}
 		});
 		btnRemove.setBounds(459, 290, 89, 23);
@@ -246,17 +252,18 @@ public class MainWindow extends JFrame {
 
 	}
 
-//	public void updImg(String s) {
-//		imageDisplay.repaint();
-//		System.out.println(imageDisplay);
-//		imageDisplay.updateImage(s);
-//	}
+	// public void updImg(String s) {
+	// imageDisplay.repaint();
+	// System.out.println(imageDisplay);
+	// imageDisplay.updateImage(s);
+	// }
 
 	public class imgThumb {
 		private String imgLoc = "";
 		private int x, y, sz;
 		ImageIcon icon;
 		boolean valid = false;
+		boolean selected = false;
 
 		public imgThumb(String s, int posX, int posY, int saiz) {
 			x = posX;
@@ -266,8 +273,9 @@ public class MainWindow extends JFrame {
 			icon = new ImageIcon(imgLoc, "");
 		}
 
-		public boolean rebuild(String s) {
+		public boolean create(String s) {
 			if (!valid) {
+				imgLoc = s;
 				icon = new ImageIcon(s, "");
 				valid = true;
 				return false;
@@ -275,34 +283,75 @@ public class MainWindow extends JFrame {
 				return true;
 		}
 
+		public void rebuild(String s) {
+			imgLoc = s;
+			icon = new ImageIcon(s, "");
+		}
+
 		public void draw(Graphics g) {
 			if (valid)
 				g.drawImage(icon.getImage(), x, y, sz, sz, null);
+			if (selected)
+				g.drawRect(x, y, sz, sz);
 		}
+		   /**
+	     * Resizes an image using a Graphics2D object backed by a BufferedImage.
+	     * @param srcImg - source image to scale
+	     * @param w - desired width
+	     * @param h - desired height
+	     * @return - the new resized image
+	     */
+	    private Image getScaledImage(Image srcImg, int w, int h){
+	        BufferedImage resizedImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+	        Graphics2D g2 = resizedImg.createGraphics();
+	        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+	        g2.drawImage(srcImg, 0, 0, w, h, null);
+	        g2.dispose();
+	        return resizedImg;
+	    }
+	    private Image getSquareImage(Image srcImg, int sz){
+	        BufferedImage resizedImg = new BufferedImage(sz, sz, BufferedImage.TYPE_INT_RGB);
+	        Graphics2D g2 = resizedImg.createGraphics();
+	        int w = 1280; //srcImage width
+	        int h = 800; //srcImage height
+	        float ratio = w/h;
+	        if (w < h) {
+	        	w = sz;
+	        	h = (int) (sz*ratio);
+	        } else {
+	        	w = (int) (sz*ratio);
+	        	h = sz;
+	        }
+	        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+	        g2.drawImage(srcImg, 0, 0, w, h, null);
+	        g2.dispose();
+	        return resizedImg;
+	    }
 	}
 
-	class DrawPanel extends JPanel {
-//		String imageLoc = "";
+	class DrawPanel extends JPanel implements MouseListener {
+		// String imageLoc = "";
 		int iconSize = 80;
 		int borderSize = 10;
 		int rowSize = 3;
 		imgThumb[] iconz = new imgThumb[25];
+		Dimension saiz;
 
 		public DrawPanel() {
 			for (int i = 0; i < iconz.length; i++) {
-				iconz[i] = new imgThumb(
-						"", borderSize
-								+ (borderSize + iconSize) * (i % rowSize),
-						borderSize + (borderSize + iconSize) * (i / rowSize),
-						iconSize);
+				iconz[i] = new imgThumb("", borderSize
+						+ (borderSize + iconSize) * (i % rowSize), borderSize
+						+ (borderSize + iconSize) * (i / rowSize), iconSize);
+
 			}
 			setBorder(BorderFactory.createLineBorder(Color.black));
-			addMouseListener(new MouseAdapter() {
-				public void mousePressed(MouseEvent e) {
-					repaint(0, 0, 100, 100);
-					// moveSquare(e.getX(),e.getY());
-				}
-			});
+			addMouseListener(this);
+			// addMouseListener(new MouseAdapter() {
+			// public void mousePressed(MouseEvent e) {
+			// repaint(0, 0, 100, 100);
+			// // moveSquare(e.getX(),e.getY());
+			// }
+			// });
 
 			addMouseMotionListener(new MouseAdapter() {
 				public void mouseDragged(MouseEvent e) {
@@ -313,17 +362,18 @@ public class MainWindow extends JFrame {
 		}
 
 		public Dimension getPreferredSize() {
-			return new Dimension(
+			saiz = new Dimension(
 					rowSize * (borderSize + iconSize) + borderSize,
 					(iconz.length / rowSize) * (borderSize + iconSize)
 							+ borderSize);
+			return saiz;
 		}
 
 		public void addImage(String s) {
-//			imageLoc = s;
-//			System.out.println(imageLoc);
+			// imageLoc = s;
+			// System.out.println(imageLoc);
 			for (int i = 0; i < iconz.length; i++) {
-				if (!iconz[i].rebuild(s)) {
+				if (!iconz[i].create(s)) {
 					repaint(iconz[i].x, iconz[i].y, iconSize, iconSize);
 					break;
 				}
@@ -336,31 +386,12 @@ public class MainWindow extends JFrame {
 			// ImageIcon icon = new ImageIcon(imageLoc,"");
 
 			// Draw Text
-			//g.drawString("This is my custom Panel!", 10, 20);
+			// g.drawString("This is my custom Panel!", 10, 20);
 			for (int i = 0; i < iconz.length; i++) {
 				iconz[i].draw(g);
 			}
 		}
 
-//		@Override
-//		public Object getTransferData(DataFlavor arg0)
-//				throws UnsupportedFlavorException, IOException {
-//			// TODO Auto-generated method stub
-//			return null;
-//		}
-//
-//		@Override
-//		public DataFlavor[] getTransferDataFlavors() {
-//			// TODO Auto-generated method stub
-//			return null;
-//		}
-//
-//		@Override
-//		public boolean isDataFlavorSupported(DataFlavor arg0) {
-//			// TODO Auto-generated method stub
-//			return true;
-//		}
-//
 		public boolean canImport(TransferSupport supp) {
 			// Check for String flavor
 			// if (!supp.isDataFlavorSupported(stringFlavor)) {
@@ -392,6 +423,76 @@ public class MainWindow extends JFrame {
 
 			return true;
 		}
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			// System.out.println(e.getY());
+
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+			int row = e.getY() / (iconSize + borderSize);
+			int col = e.getX() / (iconSize + borderSize);
+			// System.out.println(row + " " + col);
+			for (int i = 0; i < iconz.length; i++) {
+				if (e.getClickCount() == 2) {
+					
+				} else if (e.getClickCount() == 1) {
+					if (i == row * rowSize + col && iconz[i].valid)
+						iconz[i].selected = true;
+					else
+						iconz[i].selected = false;
+				}
+			}
+			redraw();
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			// TODO Auto-generated method stub
+
+		}
+
+		public void removeSelected() {
+			boolean found = false;
+			for (int i = 0; i < iconz.length; i++) {
+				if (iconz[i].selected) {
+					iconz[i].valid = false;
+					iconz[i].selected = false;
+					found = true;
+				}
+				if (found && i < iconz.length - 1) {
+					iconz[i].valid = false;
+					if (!iconz[i + 1].valid) {
+						iconz[i].valid = false;
+						break;
+					} else
+						iconz[i].create(iconz[i + 1].imgLoc);
+				}
+			}
+			// for(int i = 0; i < iconz.length;i++) {
+			//
+			// }
+			redraw();
+		}
+
+		public void redraw() {
+			repaint(0, 0, saiz.width, saiz.height);
+		}
+
 	}
 
 	class OpenL implements ActionListener {
