@@ -44,6 +44,7 @@ import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 import net.Uploader;
 import base.*;
+
 import javax.swing.ScrollPaneConstants;
 
 @SuppressWarnings("serial")
@@ -60,18 +61,20 @@ public class MainWindow extends JFrame {
 	public static String rUser;
 	public static String rPass;
 	public static boolean settingsExist;
-	public DataHandler dh;
 	public MainWindow self;
 	JScrollPane scroller;
 
 	/**
 	 * Launch the application.
 	 */
-	public static void main(String[] args) {
+//	public static void main(String[] args) {
+//		
+//	}
+	public static void newMainWindow(final String contentType,final String contentTypeName) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					MainWindow frame = new MainWindow();
+					MainWindow frame = new MainWindow(contentType,contentTypeName);
 					// frame.setUndecorated(true);
 					frame.setVisible(true);
 				} catch (Exception e) {
@@ -80,13 +83,12 @@ public class MainWindow extends JFrame {
 			}
 		});
 	}
-
 	/**
 	 * Create the frame.
 	 */
-	public MainWindow() {
+	public MainWindow(String type, String typeName) {
 		self = this;
-		dh = new DataHandler();
+		DataHandler dh = DataHandler.getInstance();
 		dh.readSettings();
 		// checkSettings();
 		setTitle("Drupal Author");
@@ -166,7 +168,7 @@ public class MainWindow extends JFrame {
 		btnUpload.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// if(formValid) pop form not valid error
-				Uploader up = new Uploader(dh.data);
+				Uploader.getInstance().fillData();
 //				if (listModel.size() > 0) {
 //					String[] fids = new String[listModel.size()];
 //					for (int i = 0; i < listModel.size(); i++) {
@@ -219,16 +221,7 @@ public class MainWindow extends JFrame {
 		JButton btnSettings = new JButton("Settings");
 		btnSettings.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				EventQueue.invokeLater(new Runnable() {
-					public void run() {
-						try {
-							settings frame = new settings(dh);
-							frame.setVisible(true);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
-				});
+				Settings.newSettings(false);
 			}
 		});
 		btnSettings.setBounds(555, 317, 98, 26);

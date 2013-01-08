@@ -4,26 +4,49 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
+
+import net.Uploader;
 
 import base.DataHandler;
 
 import java.awt.Color;
+import java.awt.EventQueue;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 @SuppressWarnings("serial")
-public class settings extends JFrame {
+public class Settings extends JDialog {
 
 	private JPanel contentPane;
 	private JTextField passField;
 	private JTextField userField;
 	private JTextField serverField;
 	private JTextField pathField;
-
-
-	public settings(final DataHandler dh) {
+	
+	public static void newSettings(final boolean firstRun) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					Settings frame = new Settings(firstRun);
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	private void closeOperation(boolean firstRun) {
+		if(firstRun) {
+			
+			TypeSelect.promptSelection(DataHandler.getInstance().types);
+		}
+		dispose();
+	}
+	public Settings(final boolean firstRun) {
+		final DataHandler dh = DataHandler.getInstance();
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 223, 316);
 		contentPane = new JPanel();
@@ -35,7 +58,7 @@ public class settings extends JFrame {
 		JButton btnDone = new JButton("Cancel");
 		btnDone.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				dispose();
+				closeOperation(firstRun);
 			}
 		});
 		btnDone.setForeground(Color.BLACK);
@@ -96,8 +119,10 @@ public class settings extends JFrame {
 				dh.data[1] = pathField.getText();
 				dh.data[2] = userField.getText();
 				dh.data[3] = passField.getText();
+				dh.fillTypes();
+				
 				dh.writeSettings();
-				dispose();
+				closeOperation(firstRun);
 			}
 		});
 		btnNewButton.setForeground(Color.BLACK);

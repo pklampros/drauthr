@@ -28,14 +28,24 @@ public class Uploader {
 
 	// public static void main(String[] args) throws Exception {
 	// }
+	// Singleton with public final field
+	private static final Uploader INSTANCE = new Uploader();
 
-	public Uploader(final String[] data) {
+	public static Uploader getInstance() {
+		return INSTANCE;
+	}
+
+	private Uploader() {
+	}
+
+	public Uploader fillData() {
+		final String[] data = DataHandler.getInstance().data;
 		siteData = new String[data.length];
 		generateURIelements(data[0], data[1]);
 		generateUSERelements(data[2], data[3]);
 		// httpclient = new DefaultHttpClient();
 		params.println("Starting");
-		startAndLogin();
+//		startAndLogin();
 
 		// restNodeCreate();
 
@@ -48,13 +58,13 @@ public class Uploader {
 		// params.println(getNodesIndex());
 		// params.println(getJSONArray(getNodeIndex())[1]);
 		// params.println(fileUpload("C:/ATI/a.jpg"));
-//		getNodeTypes();
-		getVocabularyTerms(1);
-
+		// getNodeTypes();
+//		getVocabularyTerms(1);
+		return this;
 	}
-	
+
 	// ---- HARD CODE
-	
+
 	private JSONObject generateJSON(String[] args, String[] fids) {
 		JSONObject j = new JSONObject();
 		j.put("type", args[0]);
@@ -75,33 +85,36 @@ public class Uploader {
 		jArrayDude.add(mapthing);
 		return jArrayDude;
 	}
-	
-	// ---- HARD CODE 
-	
-	
-	public String [] getNodeTypes() {
-		System.out.println(goPost("drauthr/get_content_types",null,true));
-		return new String [] {"",""};
+
+	// ---- HARD CODE
+	public HashMap<String, String> getNodeTypes() {
+		String daString = goPost("drauthr/get_content_types", null, true);
+		JSONObject j3 = new JSONObject();
+		j3 = (JSONObject) JSONValue.parse(daString);
+		return j3;
 	}
-	public String [] getVocabularyTerms(int vid) {
+
+	public String[] getVocabularyTerms(int vid) {
 		JSONObject j = new JSONObject();
 		j.put("vid", vid);
-		System.out.println(goPost("taxonomy_vocabulary/getTree",j,true));
-		return new String [] {"",""};
+		System.out.println(goPost("taxonomy_vocabulary/getTree", j, true));
+		return new String[] { "", "" };
 	}
+
 	public void uploadNode(String[] args, String[] fids) {
 		startAndLogin();
 		goPost("node", generateJSON(args, fids), false);
 		closeConnection();
 	}
 
-	private void startAndLogin() {
+	public Uploader startAndLogin() {
 		httpclient = new DefaultHttpClient();
 
 		JSONObject j = new JSONObject();
 		j.put("username", siteData[2]);
 		j.put("password", siteData[3]);
 		goPost("user/login", j, false);
+		return this;
 	}
 
 	private String getNode(int node) {
@@ -212,8 +225,6 @@ public class Uploader {
 		params.println("Finished");
 		httpclient.getConnectionManager().shutdown();
 	}
-
-
 
 	public void generateURIelements(String sN, String rP) {
 		// do error correction
