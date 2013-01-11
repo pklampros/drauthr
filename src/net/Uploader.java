@@ -36,6 +36,7 @@ public class Uploader {
 	}
 
 	private Uploader() {
+
 	}
 
 	public Uploader fillData() {
@@ -94,6 +95,21 @@ public class Uploader {
 		return j3;
 	}
 
+	public String getFieldsOfType(String type) {
+		JSONObject j = new JSONObject();
+		j.put("name", type);
+//		JSONObject fields = getJSONObject(getJSONValue(goPost("drauthr/get_content_type_fields", j, true),"fields"));
+//		System.out.println("loller " + fields.size());
+		/*
+		 * Here the problem is whether we should separate the fields here or 
+		 * in the drupal module. If I understand the RESTful practices, it 
+		 * should be the module.
+		 */
+		System.out.println("loller " + goPost("drauthr/get_content_type_fields", j, true));
+		return "";
+	}
+
+
 	public String[] getVocabularyTerms(int vid) {
 		JSONObject j = new JSONObject();
 		j.put("vid", vid);
@@ -121,12 +137,11 @@ public class Uploader {
 		return goGet("node/" + node);
 	}
 
-	private String getNodeIndex() {
+	public String getNodeIndex() {
 		// return goGet("node?fields=nid");
 		// return goGet("node?page=1");
 		return goGet("node?fields=nid&pagesize=50");
 	}
-
 	public String fileUpload(String theFile) {
 		String fid = "-1";
 		String image64 = ImageToBase64.toBase64(theFile);
@@ -208,6 +223,10 @@ public class Uploader {
 		j3 = (JSONObject) JSONValue.parse(daString);
 		result = j3.get(theKey).toString();
 		return result;
+	}
+
+	public JSONObject getJSONObject(String daString) {
+		return (JSONObject) JSONValue.parse(daString);
 	}
 
 	public String[] getJSONArray(String daString) {
@@ -309,4 +328,31 @@ public class Uploader {
 		return daResponse;
 	}
 
+	private String goPostToString(String resource, JSONObject j, boolean respond) {
+		// HttpPost request = new HttpPost(compileURI(resource));
+		// if(args.length<3) return;
+		String daResponse = "";
+		try {
+
+			HttpPost request = new HttpPost(compileURI(resource));
+			if (j != null) {
+				StringEntity params = new StringEntity(j.toString());
+				request.addHeader("content-type", "application/json");
+				request.setEntity(params);
+			}
+			if (respond) {
+				HttpResponse response = httpclient.execute(request);
+				System.out.println(response);
+				daResponse = readResponse(response);
+			} else {
+				httpclient.execute(request);
+			}
+			request.releaseConnection();
+		} catch (Exception ex) {
+			// handle exception here
+		} finally {
+			// httpclient.getConnectionManager().shutdown();
+		}
+		return daResponse;
+	}
 }

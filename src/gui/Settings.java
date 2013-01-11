@@ -8,8 +8,6 @@ import javax.swing.JDialog;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
 
-import net.Uploader;
-
 import base.DataHandler;
 
 import java.awt.Color;
