@@ -38,7 +38,7 @@ public class Settings extends JDialog {
 	}
 	private void closeOperation(boolean firstRun) {
 		if(firstRun) {
-			
+			DataHandler.getInstance().checkTypes();
 			TypeSelect.promptSelection(DataHandler.getInstance().types);
 		}
 		dispose();
@@ -117,9 +117,9 @@ public class Settings extends JDialog {
 				dh.data[1] = pathField.getText();
 				dh.data[2] = userField.getText();
 				dh.data[3] = passField.getText();
-				dh.fillTypes();
+//				dh.checkTypes();
 				
-				dh.writeSettings();
+//				dh.writeSettings();
 				closeOperation(firstRun);
 			}
 		});

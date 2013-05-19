@@ -95,7 +95,7 @@ public class Uploader {
 		return j3;
 	}
 
-	public String getFieldsOfType(String type) {
+	public String [] getFieldsOfType(String type) {
 		JSONObject j = new JSONObject();
 		j.put("name", type);
 //		JSONObject fields = getJSONObject(getJSONValue(goPost("drauthr/get_content_type_fields", j, true),"fields"));
@@ -105,11 +105,15 @@ public class Uploader {
 		 * in the drupal module. If I understand the RESTful practices, it 
 		 * should be the module.
 		 */
-		System.out.println("loller " + goPost("drauthr/get_content_type_fields", j, true));
-		return "";
+		String result = goPost("drauthr/get_content_type_fields", j, true);
+		if(!result.equals("[null]")) return getJSONArray(result);
+		else return null;
 	}
-
-
+	public String getTypeDescription(String type) {
+		JSONObject j = new JSONObject();
+		j.put("name", type);
+		return goPost("drauthr/get_content_type_description", j, true);
+	}
 	public String[] getVocabularyTerms(int vid) {
 		JSONObject j = new JSONObject();
 		j.put("vid", vid);
@@ -133,7 +137,7 @@ public class Uploader {
 		return this;
 	}
 
-	private String getNode(int node) {
+	public String getNode(int node) {
 		return goGet("node/" + node);
 	}
 
